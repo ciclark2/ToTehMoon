@@ -41,24 +41,63 @@ class HitBTC(object):
 		return json.JSONDecoder().decode(request.text)
 
 	def get_exchange_ts(self):
+		"""
+		Request the current exchange timestamp
+
+		:returns dict:
+		"""
 		return self._request(self._TIMESTAMP)
 
 	def get_symbols(self):
+		"""
+		Request the set of listed symbols.
+		
+		:returns dict:
+		"""
 		return self._request(self._SYMBOLS)
 
 	def get_ticker(self, symbol):
+		"""
+		Request the ticker for a given symbol.
+
+		:param str symbol:
+		:returns dict:
+		"""
 		return self._request(self._SINGLE_TICKER.format(symbol=symbol))
 
 	def get_tickers(self):
+		"""
+		Request all tickers.
+		
+		:returns dict:
+		"""
 		return self._request(self._ALL_TICKERS)
 
 	def get_order_book(self, symbol):
+		"""
+		Request the order book for a given symbol.
+
+		:param str symbol:
+		:returns dict:
+		"""
 		return self._request(self._ORDER_BOOK.format(symbol=symbol))
 
 	def get_trades(self, symbol):
+		"""
+		Request trade history for a symbol.
+
+		:param str symbol:
+		:returns dict:
+		"""
 		return self._request(self._TRADES.format(symbol=symbol))
 
 	def get_recent_trades(self, symbol):
+		"""
+		Request the recent trades for a symbol.
+		
+		:param str symbol:
+		:returns dict:
+		"""
 		return self._request(self._RECENT_TRADES.format(symbol=symbol))
 
 
