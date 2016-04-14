@@ -187,10 +187,18 @@ class HitBTC(object):
 
 def main():
 	api = HitBTC()
+	
+	print 'Current exchange timestamp:'
 	print api.get_exchange_ts()
+	
+	print 'Live symbols:'
 	print api.get_symbols()
+	
+	print 'Live tickers:'
 	print api.get_tickers()
 
+	print 'BTCUSD Order Book:'
+	print api.get_order_book('BTCUSD')  
 
 if __name__ == '__main__':
 	main()
