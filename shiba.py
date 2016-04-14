@@ -2,10 +2,12 @@ import wx
 import threading
 import time
 import doge
+import sys
+
+API = None
 
 class OrderBookList(wx.ListCtrl):
     exitFlag = False
-    api = doge.HitBTC()
     data = []
     numEntries = 20
     columns=['Bid', 'BidQty', 'AskQty', 'Ask']
@@ -38,7 +40,7 @@ class OrderBookList(wx.ListCtrl):
             time.sleep(0.1)
 
     def UpdateTimer(self):
-        orderbook = self.api.get_order_book('BTCUSD')
+        orderbook = API.get_order_book('BTCUSD')
         bids = orderbook['bids']
         asks = orderbook['asks']
 
@@ -72,6 +74,17 @@ class MyFrame(wx.Frame):
 
 if __name__ == '__main__':
     ''' Simple main program to display this panel. '''
+	
+    # Parse cmdline args
+    if len(sys.argv) != 3:
+        print 'Program arguments should be: <api key> <api secret>'
+        sys.exit(1)
+
+    # Instantiate our api
+    _, api_key, api_secret = sys.argv
+    API = doge.HitBTC(api_key, api_secret)
+
+
     # Create a simple wxFrame to insert the panel into
     desiredSize = wx.Size(400,515)
     app = wx.PySimpleApp()
