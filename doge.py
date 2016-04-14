@@ -7,7 +7,7 @@ class HitBTC(object):
 	"""
 	REST API for Hit BTC.
 	"""
-	_SECRET = '8fd089ce3e2642c1306624fce68c9f25Secretda0921b8de670901faeb39cb38f619d0l'
+	_SECRET = None
 	_BASE_URL = 'http://api.hitbtc.com'
 
 	_TIMESTAMP = '/api/1/public/time'
