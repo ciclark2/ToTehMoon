@@ -51,19 +51,16 @@ class HitBTC(object):
 
 	# Trading URLS
 	_NEW_ORDER = '/api/1/trading/new_order?'
-    _NEW_ORDER_PARAMS = [
-        'apikey',
-        'nonce',
-        'clientOrderId',
-        'symbol',
-        'side',
-        'price',
-        'quantity',
-        'type',
-    ]
-
-
-    #apikey={key}&nonce={nonce}&clientOrderId={clorid}&symbol={symbol}&side={side}&price={price}&quantity={size}&type={type}'
+	_NEW_ORDER_PARAMS = [
+		'apikey',
+		'nonce',
+		'clientOrderId',
+		'symbol',
+		'side',
+		'price',
+		'quantity',
+		'type',
+	]
 
 	def __init__(self, key=_KEY, secret=_SECRET):
 		"""
@@ -104,17 +101,17 @@ class HitBTC(object):
 		
 		signature = hmac.new(self._secret, url, hashlib.sha512).hexdigest()
 
-    @staticmethod
-    def construct_query_string(fields, values):
-        """
-        Construct a REST query string from a set of fields and values.
+	@staticmethod
+	def construct_query_string(fields, values):
+		"""
+		Construct a REST query string from a set of fields and values.
 
-        :param list of str fields:
-        :param list of str values:
-        :returns str:
-        """
-        field_values = zip(fields, values)
-        return '&'.join(['{0}={1}'.format(*field) for field in field_values])
+		:param list of str fields:
+		:param list of str values:
+		:returns str:
+		"""
+		field_values = zip(fields, values)
+		return '&'.join(['{0}={1}'.format(*field) for field in field_values])
 
 	def get_exchange_ts(self):
 		"""
