@@ -16,8 +16,8 @@ class OrderBookList(wx.ListCtrl):
         font = wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
         self.SetFont(font)
 
-        for i in xrange(0, len(columns)):
-            self.InsertColumn(i, columns[i])
+        for i in xrange(0, len(self.columns)):
+            self.InsertColumn(i, self.columns[i])
             self.SetColumnWidth(i, 100)
 
         for i in xrange(0, self.numEntries):
@@ -38,7 +38,7 @@ class OrderBookList(wx.ListCtrl):
             time.sleep(0.1)
 
     def UpdateTimer(self):
-        orderbook = self.api.get_order_books()['BTCUSD']
+        orderbook = self.api.get_order_book('BTCUSD')
         bids = orderbook['bids']
         asks = orderbook['asks']
 
@@ -59,15 +59,15 @@ class MyFrame(wx.Frame):
     def __init__(self, parent, id ,size):
         wx.Frame.__init__(self, parent, id, size=desiredSize, style=wx.DEFAULT_FRAME_STYLE ^ wx.RESIZE_BORDER)
         sizer = wx.BoxSizer(wx.VERTICAL)
-        self.book = OrderBookList(self, 0, size)
-        sizer.Add(self.book, 1, wx.EXPAND, 0)
+        self.orderBook = OrderBookList(self, 0, size)
+        sizer.Add(self.orderBook, 1, wx.EXPAND, 0)
         self.SetSizer(sizer)
         self.Layout()
         self.Bind(wx.EVT_CLOSE, self.onClose)
 
     def onClose(self, event):
-        self.book.SetExitFlag(True)
-        self.book.WaitForExit()
+        self.orderBook.SetExitFlag(True)
+        self.orderBook.WaitForExit()
         event.Skip()
 
 if __name__ == '__main__':
