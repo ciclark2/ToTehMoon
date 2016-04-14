@@ -1,15 +1,47 @@
+import datetime
+import hashlib
+import hmac
+#import unirest
+import json
 import requests
 import json
 import urlparse
+import itertools
+
+
+class APIError(Exception):
+	pass
+
+
+class InvalidAPIKey(APIError):
+	pass
+
+
+class NonceHasBeenUsed(APIError):
+	pass
+
+
+class NonceInvalid(APIError):
+	pass
+
+
+class WrongSignature(APIError):
+	pass
+
+
+class ExchangeError(APIError):
+	pass
 
 
 class HitBTC(object):
 	"""
 	REST API for Hit BTC.
 	"""
+	_KEY = None
 	_SECRET = None
 	_BASE_URL = 'http://api.hitbtc.com'
 
+	# Market data URLS
 	_TIMESTAMP = '/api/1/public/time'
 	_SYMBOLS = '/api/1/public/symbols'
 	_SINGLE_TICKER = '/api/1/public/{symbol}/ticker'
@@ -18,14 +50,19 @@ class HitBTC(object):
 	_TRADES = '/api/1/public/{symbol}/trades'
 	_RECENT_TRADES = '/api/1/public/{symbol}/trades/recent'
 
-	def __init__(self, secret=_SECRET):
+	# Trading URLS
+	_NEW_ORDER = '/api/1/trading/new_order?apikey={key}&nonce={nonce}&clientOrderId={clorid}&symbol={symbol}&side={side}&price={price}&quantity={size}&type={type}'
+
+	def __init__(self, key=_KEY, secret=_SECRET):
 		"""
 		API C'tor.
 		
 		:param str secret:
 		"""
+		self._key = key
 		self._secret = secret
-		
+		self._client_order_id = itertools.count(0)		
+
 		
 	def _request(self, url):
 		"""
@@ -39,6 +76,24 @@ class HitBTC(object):
 			raise IOError('URL failed "%s"' % url)
 
 		return json.JSONDecoder().decode(request.text)
+
+	def _post(self, url):
+		"""
+		Send a POST to the exchange.
+
+		:param str data:
+		:returns result:
+		"""
+		nonce = str(int(time.mktime(datetime.datetime.now().timetuple()) * 1000 + datetime.datetime.now().microsecond / 1000))
+		client_order_id = self._client_order_id.next()
+		url = urlparse.urljoin(self._BASE_URL, url)
+		
+		signature = hmac.new(self._secret, url, hashlib.sha512).hexdigest()
+
+		#result = unirest.post(url, headers={"Api-Signature": signature}, params=url)
+
+		#return result.body	
+
 
 	def get_exchange_ts(self):
 		"""
