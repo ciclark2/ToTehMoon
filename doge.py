@@ -44,9 +44,10 @@ class HitBTC(object):
 		"""
 		Request the current exchange timestamp
 
-		:returns dict:
+		:returns int:
 		"""
-		return self._request(self._TIMESTAMP)
+		response = self._request(self._TIMESTAMP)
+		return response['timestamp']
 
 	def get_symbols(self):
 		"""
