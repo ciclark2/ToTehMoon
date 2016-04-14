@@ -69,11 +69,12 @@ class HitBTC(object):
 		Send a GET request to the exchange.
 		
 		:param str url:
+		:raises APIError on unsuccessful request:
 		"""
 		url = urlparse.urljoin(self._BASE_URL, url)
 		request = requests.get(url)
 		if request.status_code != requests.codes.ok:
-			raise IOError('URL failed "%s"' % url)
+			raise APIError('Request to URL "{0}" failed'.format(url))
 
 		return json.JSONDecoder().decode(request.text)
 
