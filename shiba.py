@@ -60,10 +60,38 @@ class OrderBookList(wx.ListCtrl):
 class MyFrame(wx.Frame):
     def __init__(self, parent, id ,size):
         wx.Frame.__init__(self, parent, id, size=desiredSize, style=wx.DEFAULT_FRAME_STYLE ^ wx.RESIZE_BORDER)
-        sizer = wx.BoxSizer(wx.VERTICAL)
+
         self.orderBook = OrderBookList(self, 0, size)
-        sizer.Add(self.orderBook, 1, wx.EXPAND, 0)
-        self.SetSizer(sizer)
+
+        self.buyOrder = wx.RadioButton(self, -1, 'Buy', style=wx.RB_GROUP)
+        self.sellOrder = wx.RadioButton(self, -1, 'Sell')
+        buySellSizer = wx.BoxSizer(wx.HORIZONTAL)
+        buySellSizer.Add(self.buyOrder, 0, wx.ALL | wx.EXPAND, 0)
+        buySellSizer.Add((30, 5), 0, 0, 0)
+        buySellSizer.Add(self.sellOrder, 0, wx.ALL | wx.EXPAND, 0)
+
+        self.orderPrice = wx.TextCtrl(self, -1, '0.0')
+        self.orderSize = wx.TextCtrl(self, -1, '0.0')
+        priceSizeSizer = wx.BoxSizer(wx.HORIZONTAL)
+        priceSizeSizer.Add(wx.StaticText(self, -1, 'Price'), 0, 0, 0)
+        priceSizeSizer.Add((30,5), 0, 0, 0)
+        priceSizeSizer.Add(self.orderPrice, 0, wx.ALL | wx.EXPAND, 0)
+        priceSizeSizer.Add((30,5), 0, 0, 0)
+        priceSizeSizer.Add(wx.StaticText(self, -1, 'Size'), 0, 0, 0)
+        priceSizeSizer.Add((30, 5), 0, 0, 0)
+        priceSizeSizer.Add(self.orderSize, 0, wx.ALL | wx.EXPAND, 0)
+
+        self.sendOrderButton = wx.Button(self, id, 'Send Order')
+        self.sendOrderButton.Bind(wx.EVT_BUTTON, self.onSendOrder)
+
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.sizer.Add(self.orderBook, 0, wx.ALL | wx.EXPAND, 0)
+        self.sizer.Add(buySellSizer, 0, wx.ALIGN_CENTER_HORIZONTAL, 0)
+        self.sizer.Add(priceSizeSizer, 0, wx.ALIGN_CENTER_HORIZONTAL, 0)
+        self.sizer.Add(self.sendOrderButton, 0, wx.ALL | wx.EXPAND, 0)
+
+        self.SetSizerAndFit(self.sizer)
+
         self.Layout()
         self.Bind(wx.EVT_CLOSE, self.onClose)
 
@@ -71,6 +99,17 @@ class MyFrame(wx.Frame):
         self.orderBook.SetExitFlag(True)
         self.orderBook.WaitForExit()
         event.Skip()
+
+    def onSendOrder(self, event):
+        order = ''
+        if self.buyOrder.GetValue():
+            order += 'BUY '
+        elif self.sellOrder.GetValue():
+            order += 'SELL '
+        order += self.orderSize.GetLineText(0) + ' @ ' + self.orderPrice.GetLineText(0)
+        print order
+        
+
 
 if __name__ == '__main__':
     ''' Simple main program to display this panel. '''
@@ -86,7 +125,7 @@ if __name__ == '__main__':
 
 
     # Create a simple wxFrame to insert the panel into
-    desiredSize = wx.Size(400,515)
+    desiredSize = wx.Size(400, 1000)
     app = wx.PySimpleApp()
     frame = MyFrame(None, -1, size=desiredSize)    
     frame.Show()
