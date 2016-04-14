@@ -56,8 +56,9 @@ class HitBTC(object):
 	def __init__(self, key=_KEY, secret=_SECRET):
 		"""
 		API C'tor.
-		
-		:param str secret:
+	
+		:param str key: API key	
+		:param str secret: Secret key
 		"""
 		self._key = key
 		self._secret = secret
