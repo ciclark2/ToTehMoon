@@ -52,9 +52,11 @@ class HitBTC(object):
 		"""
 		Request the set of listed symbols.
 		
-		:returns dict:
+		:returns list:
 		"""
-		return self._request(self._SYMBOLS)
+		request = self._request(self._SYMBOLS)
+		return [symbol_info['symbol'] for symbol_info in request['symbols']] 
+
 
 	def get_ticker(self, symbol):
 		"""
@@ -81,6 +83,14 @@ class HitBTC(object):
 		:returns dict:
 		"""
 		return self._request(self._ORDER_BOOK.format(symbol=symbol))
+
+	def get_order_books(self):
+		"""
+		Request the order books for all symbols.
+
+		:returns dict:
+		"""
+		return dict((symbol, self.get_order_book(symbol)) for symbol in self.get_symbols())
 
 	def get_trades(self, symbol):
 		"""
