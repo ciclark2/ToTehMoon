@@ -1,7 +1,6 @@
 import datetime
 import hashlib
 import hmac
-#import unirest
 import json
 import requests
 import json
@@ -91,11 +90,6 @@ class HitBTC(object):
 		url = urlparse.urljoin(self._BASE_URL, url)
 		
 		signature = hmac.new(self._secret, url, hashlib.sha512).hexdigest()
-
-		#result = unirest.post(url, headers={"Api-Signature": signature}, params=url)
-
-		#return result.body	
-
 
 	def get_exchange_ts(self):
 		"""
