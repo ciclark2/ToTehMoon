@@ -1,7 +1,9 @@
 import datetime
 import unirest
 import hashlib
+import random
 import hmac
+import string
 import time
 import json
 import requests
@@ -11,6 +13,10 @@ import itertools
 
 
 class APIError(Exception):
+	pass
+
+
+class AuthenticationError(APIError):
 	pass
 
 
@@ -38,9 +44,9 @@ class HitBTC(object):
 	"""
 	REST API for Hit BTC.
 	"""
-	_KEY = None
-	_SECRET = None
-	_BASE_URL = 'http://api.hitbtc.com'
+	_KEY = 'cb90cbafd3131b11e2d2fe50da918897'
+	_SECRET = '60169e196ef10057a817ca771b054cb0'
+	_BASE_URL = 'http://demo-api.hitbtc.com'
 
 	# Market data URLS
 	_TIMESTAMP = '/api/1/public/time'
@@ -54,8 +60,8 @@ class HitBTC(object):
 	# Trading URLS
 	_NEW_ORDER = '/api/1/trading/new_order?'
 	_NEW_ORDER_PARAMS = [
-		'apikey',
 		'nonce',
+		'apikey',
 		'clientOrderId',
 		'symbol',
 		'side',
@@ -63,6 +69,14 @@ class HitBTC(object):
 		'quantity',
 		'type',
 		'timeInForce',
+	]
+	_BALANCE = '/api/1/trading/balance'
+	_BALANCE_PARAMS = []
+
+	_ACTIVE_ORDERS = '/api/1/trading/orders/active?'
+	_ACTIVE_ORDERS_PARAMS = [
+		'symbols',
+		'clientOrderId',
 	]
 
 	def __init__(self, key=_KEY, secret=_SECRET):
@@ -98,15 +112,40 @@ class HitBTC(object):
 		:param str query:
 		:returns result:
 		"""
-		nonce = str(int(time.mktime(datetime.datetime.now().timetuple()) * 1000 + datetime.datetime.now().microsecond / 1000))
-		client_order_id = self._client_order_id.next()
-		url = urlparse.urljoin(self._BASE_URL, endpoint, query)
-		
+		url = self._BASE_URL + endpoint + query
+
+		print url
+
+		idx = query.find('clientOrderId')
+		if idx == -1:
+			raise APIError('something bad happened')
+		else:
+			params = query[idx:]
+
+		print params
+	
 		signature = hmac.new(self._secret, endpoint + query, hashlib.sha512).hexdigest()
 
-		result = unirest.post(url, headers={"Api-Signature": signature}, params=query)
+		idx2 = url.find('clientOrderId')
+		if idx2 == -1: raise ValueError('poop!')
+
+		url = url[:idx2 - 1]
+
+		print 'url', url
+		print 'sig', signature
+		print 'params', params
+		result = unirest.post(url, headers={"Api-Signature": signature}, params=params)
 
 		return result
+
+	@staticmethod
+	def construct_nonce():
+		"""
+		Generate a pseudo-random nonce.
+
+		:returns str:
+		"""
+		return str(int(time.mktime(datetime.datetime.now().timetuple()) * 1000 + datetime.datetime.now().microsecond / 1000))
 
 	@staticmethod
 	def construct_query_string(fields, values):
@@ -132,8 +171,27 @@ class HitBTC(object):
 		:param str tif:
 		:returns ExecutionReport:
 		"""
-		query = HitBTC.construct_query_string(self._NEW_ORDER_PARAMS, [symbol, side, price, quantity, order_type, tif])
-		return self._post(self._NEW_ORDER, query)	
+		if not self._key and self._secret:
+			raise AuthenticationError('A valid provisioned API key and secret are required to send orders')
+
+		nonce = HitBTC.construct_nonce()
+		clorid = ''.join(random.choice(string.digits + string.ascii_lowercase) for _ in range(30))
+		path = "/api/1/trading/new_order?apikey=" + self._key + "&nonce=" + nonce
+		new_order = "clientOrderId=" + clorid + "&symbol=%s&side=%s&price=%s&quantity=%s&type=%s&timeInForce=%s" % (symbol, side, price, quantity, order_type, tif)
+
+		signature = hmac.new(self._secret, path + new_order, hashlib.sha512).hexdigest()
+
+		result = unirest.post("http://demo-api.hitbtc.com" + path, headers={"Api-Signature": signature}, params=new_order)
+		
+		return result
+
+	def get_trading_balance(self):
+		"""
+		Get your current cash and reserved ccy balances.
+
+		:returns dict:
+		"""
+		return self._request(self._BALANCE)
 
 	def get_exchange_ts(self):
 		"""
@@ -210,20 +268,20 @@ class HitBTC(object):
 def main():
 	api = HitBTC()
 	
-	print 'Current exchange timestamp:'
-	print api.get_exchange_ts()
-	
-	print 'Live symbols:'
-	print api.get_symbols()
-	
-	print 'Live tickers:'
-	print api.get_tickers()
+	#print 'Current exchange timestamp:'
+	#print api.get_exchange_ts()
+	#
+	#print 'Live symbols:'
+	#print api.get_symbols()
+	#
+	#print 'Live tickers:'
+	#print api.get_tickers()
 
-	print 'BTCUSD Order Book:'
-	print api.get_order_book('BTCUSD')  
+	#print 'BTCUSD Order Book:'
+	#print api.get_order_book('BTCUSD')  
 
 	print 'Send limit order:'
-	print api.send_new_order('BTCUSD', 'buy', 425.0, 0.1)
+	print api.send_new_order('BTCUSD', 'buy', 425.0, 0.1).body
 
 if __name__ == '__main__':
 	main()
