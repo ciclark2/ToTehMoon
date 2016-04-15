@@ -44,8 +44,8 @@ class HitBTC(object):
 	"""
 	REST API for Hit BTC.
 	"""
-	_KEY = 'cb90cbafd3131b11e2d2fe50da918897'
-	_SECRET = '60169e196ef10057a817ca771b054cb0'
+	_KEY = None
+	_SECRET = None
 	_BASE_URL = 'http://demo-api.hitbtc.com'
 
 	# Market data URLS
