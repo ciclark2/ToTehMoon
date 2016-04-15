@@ -125,7 +125,7 @@ if __name__ == '__main__':
 
 
     # Create a simple wxFrame to insert the panel into
-    desiredSize = wx.Size(400, 1000)
+    desiredSize = wx.Size(400, 515)
     app = wx.PySimpleApp()
     frame = MyFrame(None, -1, size=desiredSize)    
     frame.Show()
