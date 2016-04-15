@@ -1,6 +1,8 @@
 import datetime
+import unirest
 import hashlib
 import hmac
+import time
 import json
 import requests
 import json
@@ -60,6 +62,7 @@ class HitBTC(object):
 		'price',
 		'quantity',
 		'type',
+		'timeInForce',
 	]
 
 	def __init__(self, key=_KEY, secret=_SECRET):
@@ -72,7 +75,6 @@ class HitBTC(object):
 		self._key = key
 		self._secret = secret
 		self._client_order_id = itertools.count(0)		
-
 		
 	def _request(self, url):
 		"""
@@ -88,18 +90,23 @@ class HitBTC(object):
 
 		return json.JSONDecoder().decode(request.text)
 
-	def _post(self, url):
+	def _post(self, endpoint, query):
 		"""
 		Send a POST to the exchange.
 
-		:param str data:
+		:param str endpoint:
+		:param str query:
 		:returns result:
 		"""
 		nonce = str(int(time.mktime(datetime.datetime.now().timetuple()) * 1000 + datetime.datetime.now().microsecond / 1000))
 		client_order_id = self._client_order_id.next()
-		url = urlparse.urljoin(self._BASE_URL, url)
+		url = urlparse.urljoin(self._BASE_URL, endpoint, query)
 		
-		signature = hmac.new(self._secret, url, hashlib.sha512).hexdigest()
+		signature = hmac.new(self._secret, endpoint + query, hashlib.sha512).hexdigest()
+
+		result = unirest.post(url, headers={"Api-Signature": signature}, params=query)
+
+		return result
 
 	@staticmethod
 	def construct_query_string(fields, values):
@@ -112,6 +119,21 @@ class HitBTC(object):
 		"""
 		field_values = zip(fields, values)
 		return '&'.join(['{0}={1}'.format(*field) for field in field_values])
+
+	def send_new_order(self, symbol, side, price, quantity, order_type='limit', tif='IOC'):
+		"""
+		Send a new market limit order to the exchange.
+
+		:param str symbol: BTCUSD
+		:param str side: buy or sell
+		:param float price: 
+		:param int quantity:
+		:param str order_type:
+		:param str tif:
+		:returns ExecutionReport:
+		"""
+		query = HitBTC.construct_query_string(self._NEW_ORDER_PARAMS, [symbol, side, price, quantity, order_type, tif])
+		return self._post(self._NEW_ORDER, query)	
 
 	def get_exchange_ts(self):
 		"""
@@ -199,6 +221,9 @@ def main():
 
 	print 'BTCUSD Order Book:'
 	print api.get_order_book('BTCUSD')  
+
+	print 'Send limit order:'
+	print api.send_new_order('BTCUSD', 'buy', 425.0, 0.1)
 
 if __name__ == '__main__':
 	main()
